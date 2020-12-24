@@ -23,6 +23,17 @@ void DL1416char(char * src, int digit) {
   delayMicroseconds(100);
 }
 
+// Enable or disable cursor on n-th display
+void DL1416cursor(int src, int digit) {
+  int device = ((4 << (digit >> 2)) ^ B01111100); 
+  int devicedata = src << (digit & B00000011 ^ B00000011); // enable cursor set low // reverse digit 0-3 in display unit
+  DL1416i2c(devicedata, device |  B10000000); //wr = hoog
+  DL1416i2c(devicedata, device &  B01111111); //wr = laag
+  delayMicroseconds(100);
+  DL1416i2c(devicedata, device | B10000000); //wr = hoog
+  delayMicroseconds(100);
+}
+
 // Output a string of characters
 void DL1416print( char *string) {
   for (int i = 0; i < strlen(string); i++ )
@@ -31,7 +42,10 @@ void DL1416print( char *string) {
 
 // Clear display by output a string of space-characters
 void DL1416clear() {
-  DL1416print("                    "); // clear display
+  for (int i = 0; i < 20; i++ ) {
+    DL1416char(32, i ); 
+    DL1416cursor(0, i);
+  }
 }
 
 // ======================================================== //
@@ -54,4 +68,10 @@ void loop() {
     DL1416print(String(x).c_str());
     x++; // integer, so after 32768 it wil count down :-)
     delay(10); //very fast
+  
+  // example: flash cursor on digit 16
+  //delay(500);
+  //DL1416cursor(1, 16);
+  //delay(500);
+  //DL1416cursor(0, 16);
 }
